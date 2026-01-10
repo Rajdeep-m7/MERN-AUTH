@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs"
 import userModel from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import transporter from "../config/nodemailer.js";
+import { EMAIL_VERIFY_TEMPLATE , PASSWORD_RESET_TEMPLATE } from "../config/emailTemplates.js";
 
 export const register = async( req , res)=>{
     const { name, email, password} = req.body;
@@ -120,7 +121,8 @@ export const sendVerifyOpt= async(req , res)=>{
             from : process.env.SENDER_EMAIL,
             to : user.email,
             subject : 'Account verification OTP',
-            text: `Your OTP is ${otp}. verify account with this OTP. `
+            // text: `Your OTP is ${otp}. verify account with this OTP. ` ,
+            html : EMAIL_VERIFY_TEMPLATE.replace("{{otp}}" , otp).replace("{{email}}" , email)
         }
 
         await transporter.sendMail(mailOption);
@@ -184,7 +186,7 @@ export const isAuthenticated = async (req , res)=>{
 }
 
 export const sendResetOtp = async (req , res)=>{
-    const {email} = req.body;
+    const { email } = req.body;
     if(!email){
         return res.json({success : false , message : "email is required"});
     }
@@ -205,7 +207,8 @@ export const sendResetOtp = async (req , res)=>{
             from : process.env.SENDER_EMAIL,
             to : user.email,
             subject : 'Password reset OTP',
-            text: `your passward reset opt : ${otp} . please verify using this otp . `
+            //text: `your passward reset opt : ${otp} . please verify using this otp . `
+            html : PASSWORD_RESET_TEMPLATE.replace("{{otp}}" , otp).replace("{{email}}" , email)
         }
         await transporter.sendMail(mailOption);
         return res.json({success :  true , message : "password reset OTP send "})
